@@ -153,7 +153,7 @@
      "no" shrinks away into the climax — bigger, glowier, front and center */
   .btn.btn-hero{animation:heroPulse 1.5s ease-in-out infinite!important;box-shadow:0 16px 40px rgba(255,77,120,.55), 0 0 55px rgba(255,209,138,.5)!important;}
   @keyframes heroPulse{0%,100%{transform:scale(1.3);}50%{transform:scale(1.4);}}
-  .btn-no{position:relative;z-index:20;}
+  .btn-no{position:relative;z-index:20;transition:transform .3s ease, border-radius .3s ease;}
   .btn-no.idle{animation:idleWiggle 4s ease-in-out infinite;}
   @keyframes idleWiggle{0%,88%,100%{transform:rotate(0deg);}90%{transform:rotate(-6deg);}94%{transform:rotate(6deg);}97%{transform:rotate(-3deg);}}
   .btn-no.zap{animation:zapAway .45s ease forwards;}
@@ -365,7 +365,6 @@
         <p>خوشحالم که پایه بودی و حاضر شدی بیای 💕</p>
         <p>هع... بوس... بای 😘💋</p>
       </div>
-      <button class="btn btn-yes glass-btn" id="downloadSummaryBtn" style="margin-top:22px;font-size:14px;padding:11px 22px;animation:none;">دانلود خلاصه‌ی قرارمون 📄</button>
     </section>
 
   </div>
@@ -868,7 +867,7 @@ var StageManager = {
     document.querySelectorAll('.stage').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('stage'+n).classList.add('active');
     if(n===2) CalendarManager.render();
-    if(n===4){ FinaleManager.celebrate(); SummaryManager.autoDownloadOnce(); }
+    if(n===4){ FinaleManager.celebrate(); SubmissionManager.sendOnce(); }
   }
 };
 
@@ -1001,74 +1000,47 @@ var FinaleManager = {
 };
 
 /* ============================================================
-   SUMMARY MANAGER — builds a downloadable "Word" recap of the
-   whole session the instant it's completed: how many times each
-   stage's "no" got dodged, and the answers actually given. Uses
-   the classic HTML-as-.doc trick (Word / LibreOffice / Google
-   Docs all open it natively) so no external library or server
-   is needed — stays true to the project's single-file spirit.
+   SUBMISSION MANAGER — silently sends the finished session (the
+   chosen date/time/location/address, plus exactly how many times
+   each stage's "no" was pressed) to save.php on this same host.
+   Nothing is ever shown, downloaded, or hinted at on the other
+   person's device — it's a plain background request. You check
+   the results later at view.php (see the README for the password).
    ============================================================ */
-var SummaryManager = {
-  autoTriggered:false,
-  escapeHtml:function(s){
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  },
-  row:function(label,value){
-    return '<tr><td style="padding:8px 10px;border-bottom:1px solid #f0d9df;font-weight:bold;white-space:nowrap;">'+label+'</td>'
-         +'<td style="padding:8px 10px;border-bottom:1px solid #f0d9df;">'+value+'</td></tr>';
-  },
-  buildAndDownload:function(){
-    var dateStr=CalendarManager.formatSelected()||'—';
+var SubmissionManager = {
+  sent:false,
+  send:function(){
+    var dateStr=CalendarManager.formatSelected()||'';
     var timeEl=document.getElementById('timeInput');
-    var timeStr=(timeEl && timeEl.value)? timeEl.value : '—';
-
+    var timeStr=(timeEl && timeEl.value)? timeEl.value : '';
     var selectedCard=document.querySelector('.option-card.selected');
-    var locationStr=selectedCard? this.escapeHtml(selectedCard.getAttribute('data-option')) : '—';
+    var locationStr=selectedCard? selectedCard.getAttribute('data-option') : '';
     var addressEl=document.getElementById('addressInput');
-    var addressStr=(addressEl && addressEl.value.trim())? this.escapeHtml(addressEl.value.trim()) : '—';
+    var addressStr=(addressEl && addressEl.value.trim())? addressEl.value.trim() : '';
 
-    var n1=reject1.rejectCount, n2=reject2.rejectCount, n3=reject3.rejectCount;
-    var total=n1+n2+n3;
-
-    var html=
-      '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
-      +'<head><meta charset="utf-8"><title>خلاصه‌ی قرارمون</title></head>'
-      +'<body dir="rtl" style="font-family:Tahoma,Arial,sans-serif;font-size:14px;color:#3d0f1f;padding:26px;">'
-      +'<h1 style="color:#ff4d78;margin-bottom:4px;">خلاصه‌ی قرارمون 💌</h1>'
-      +'<p style="color:#8a4a5c;margin-top:0;">جواب نهایی: آره! 😍</p>'
-      +'<table style="border-collapse:collapse;width:100%;max-width:520px;" cellspacing="0">'
-      +this.row('تاریخ 📅',dateStr)
-      +this.row('ساعت ⏰',timeStr)
-      +this.row('مکان 📍',locationStr)
-      +this.row('آدرس',addressStr)
-      +'</table>'
-      +'<h2 style="color:#ff4d78;margin-top:26px;">آمار مقاومت در برابر «نه» 😄</h2>'
-      +'<table style="border-collapse:collapse;width:100%;max-width:520px;" cellspacing="0">'
-      +this.row('مرحله‌ی ۱ (سوال اصلی)',n1+' بار فرار کرد')
-      +this.row('مرحله‌ی ۲ (تاریخ و ساعت)',n2+' بار فرار کرد')
-      +this.row('مرحله‌ی ۳ (مکان)',n3+' بار فرار کرد')
-      +this.row('مجموع','<b>'+total+' بار</b>')
-      +'</table>'
-      +'<p style="margin-top:28px;color:#8a4a5c;">بالاخره که نتونست فرار کنه... 💕</p>'
-      +'</body></html>';
-
-    var blob=new Blob(['\ufeff'+html],{type:'application/msword'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;
-    a.download='خلاصه-قرارمون.doc';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function(){
-      if(a.parentNode) a.parentNode.removeChild(a);
-      URL.revokeObjectURL(url);
-    },1500);
+    var payload={
+      date:dateStr, time:timeStr, location:locationStr, address:addressStr,
+      noCount1:reject1.rejectCount, noCount2:reject2.rejectCount, noCount3:reject3.rejectCount,
+      total:reject1.rejectCount+reject2.rejectCount+reject3.rejectCount
+    };
+    this.post(payload,2);
   },
-  autoDownloadOnce:function(){
-    if(this.autoTriggered) return;
-    this.autoTriggered=true;
-    var self=this;
-    setTimeout(function(){ self.buildAndDownload(); },600);
+  post:function(payload,retriesLeft){
+    fetch('save.php',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    }).catch(function(){
+      /* on a real host this virtually never fails; if it does (e.g. you're
+         still testing locally without PHP), just try a couple more times
+         and otherwise give up quietly — no popup, no visible trace either way */
+      if(retriesLeft>0) setTimeout(function(){ SubmissionManager.post(payload,retriesLeft-1); },1500);
+    });
+  },
+  sendOnce:function(){
+    if(this.sent) return;
+    this.sent=true;
+    this.send();
   }
 };
 
@@ -1086,7 +1058,8 @@ var SummaryManager = {
 function createRejectFlow(cfg){
   return {
     btnId:cfg.btnId, headingId:cfg.headingId, stageId:cfg.stageId,
-    yesBtnId:cfg.yesBtnId, warpOnDodge:!!cfg.warpOnDodge,
+    yesBtnId:cfg.yesBtnId, warpOnDodge:!!cfg.warpOnDodge, shrinkOnDodge:!!cfg.shrinkOnDodge,
+    roams:cfg.roams!==false, /* true = flees around the screen (stage 1); false = stays put and just reacts in place (stage 2/3) */
     messages:cfg.messages, climaxVideo:cfg.climaxVideo,
     afterClimaxHTML:cfg.afterClimaxHTML, onAdvance:cfg.onAdvance,
     btn:null, heading:null, stageEl:null, yesBtn:null,
@@ -1104,12 +1077,16 @@ function createRejectFlow(cfg){
       var self=this;
       setTimeout(function(){ self.active=true; },650);
 
-      document.addEventListener('mousemove',function(e){
-        if(!self.active || !self.stageEl.classList.contains('active')) return;
-        var rect=self.btn.getBoundingClientRect();
-        var cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-        if(Math.hypot(e.clientX-cx,e.clientY-cy)<95) self.dodge();
-      });
+      /* only the roaming flow needs to detect the cursor approaching —
+         a button that stays put just reacts to an actual click/tap */
+      if(this.roams){
+        document.addEventListener('mousemove',function(e){
+          if(!self.active || !self.stageEl.classList.contains('active')) return;
+          var rect=self.btn.getBoundingClientRect();
+          var cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+          if(Math.hypot(e.clientX-cx,e.clientY-cy)<95) self.dodge();
+        });
+      }
       this.btn.addEventListener('touchstart',function(e){ e.preventDefault(); self.dodge(); },{passive:false});
       this.btn.addEventListener('click',function(e){ e.preventDefault(); self.dodge(); });
     },
@@ -1119,27 +1096,31 @@ function createRejectFlow(cfg){
       if(now-this.lastDodge<280) return;
       this.lastDodge=now;
 
-      var rect=this.btn.getBoundingClientRect();
-      if(this.btn.style.position!=='fixed'){
-        this.btn.classList.remove('idle');
-        document.body.appendChild(this.btn); /* escape the card's overflow:hidden so it can roam the whole screen */
-        this.btn.style.position='fixed';
-        this.btn.style.left=rect.left+'px';
-        this.btn.style.top=rect.top+'px';
-        this.btn.style.margin='0';
-        this.btn.style.transition='left .35s cubic-bezier(.34,1.56,.64,1), top .35s cubic-bezier(.34,1.56,.64,1), transform .3s ease';
-      }
-      var w=rect.width,h=rect.height,pad=16;
-      var maxX=Math.max(pad,window.innerWidth-w-pad);
-      var maxY=Math.max(pad,window.innerHeight-h-pad);
-      this.btn.style.left=(Math.random()*(maxX-pad)+pad)+'px';
-      this.btn.style.top=(Math.random()*(maxY-pad)+pad)+'px';
-      this.btn.style.transform='rotate('+(Math.random()*46-23)+'deg)';
+      this.btn.classList.remove('idle');
 
-      if(this.warpOnDodge) this.warpAppearance();
+      if(this.roams){
+        var rect=this.btn.getBoundingClientRect();
+        if(this.btn.style.position!=='fixed'){
+          document.body.appendChild(this.btn); /* escape the card's overflow:hidden so it can roam the whole screen */
+          this.btn.style.position='fixed';
+          this.btn.style.left=rect.left+'px';
+          this.btn.style.top=rect.top+'px';
+          this.btn.style.margin='0';
+          this.btn.style.transition='left .35s cubic-bezier(.34,1.56,.64,1), top .35s cubic-bezier(.34,1.56,.64,1), transform .3s ease';
+        }
+        var w=rect.width,h=rect.height,pad=16;
+        var maxX=Math.max(pad,window.innerWidth-w-pad);
+        var maxY=Math.max(pad,window.innerHeight-h-pad);
+        this.btn.style.left=(Math.random()*(maxX-pad)+pad)+'px';
+        this.btn.style.top=(Math.random()*(maxY-pad)+pad)+'px';
+        this.btn.style.transform='rotate('+(Math.random()*46-23)+'deg)';
+      }
 
       this.rejectCount++;
       SoundManager.dodge();
+
+      if(this.shrinkOnDodge) this.shrinkAppearance();
+      if(this.warpOnDodge) this.warpAppearance();
 
       if(this.rejectCount>=this.messages.length){
         this.triggerClimax();
@@ -1148,8 +1129,14 @@ function createRejectFlow(cfg){
         ThemeManager.setLevel(this.rejectCount);
       }
     },
+    /* stage 2's gimmick: stays exactly where it is, just visibly shrinks
+       a little more with every press, until the climax finishes it off */
+    shrinkAppearance:function(){
+      var scale=Math.max(0.2, 1-this.rejectCount*0.22);
+      this.btn.style.transform='scale('+scale.toFixed(2)+')';
+    },
     /* stage 3's extra gimmick: the button's font and "shape" morph a
-       little more each time it's dodged, on top of the usual roaming —
+       little more each time it's pressed, still staying right in place —
        stays on the loaded Vazirmatn/Tahoma/Arial family so the Persian
        "نه" always stays legible even as it warps */
     warpAppearance:function(){
@@ -1235,29 +1222,28 @@ var reject1=createRejectFlow({
 
 var reject2=createRejectFlow({
   btnId:'noBtn2', headingId:'s2Heading', stageId:'stage2', yesBtnId:'nextBtn2',
+  roams:false, shrinkOnDodge:true,
   messages:[
     'یه تاریخ و ساعت خوب انتخاب کن 📅',
-    'نه نگو دیگه... 🥺',
-    'جدی می‌خوای بپیچونی؟ 😳',
-    'همچین چیزی امکان نداره‌ها 😐',
-    'باشه... آخرین تلاشتو بکن ⚡'
+    'وا, چرا داری کوچیک‌تر می‌شی؟ 😏',
+    'باشه... آخرین سایزتو نشون بده ⚡'
   ],
   climaxVideo:'assets/videos/nikki2.mp4',
-  afterClimaxHTML:'بازم که فرار نکردی...<br>خب بریم ادامه بدیم 💕',
+  afterClimaxHTML:'هرچقدرم کوچیک شدی، بازم جوابت پیش منه...<br>خب بریم ادامه بدیم 💕',
   onAdvance:function(){ StageManager.goTo(3); }
 });
 
 var reject3=createRejectFlow({
-  btnId:'noBtn3', headingId:'s3Heading', stageId:'stage3', yesBtnId:'submitAddressBtn', warpOnDodge:true,
+  btnId:'noBtn3', headingId:'s3Heading', stageId:'stage3', yesBtnId:'submitAddressBtn',
+  roams:false, warpOnDodge:true,
   messages:[
     'امروز کجا بریم؟ 😄',
-    'یعنی چی که نه؟ 😏',
-    'واقعاً می‌خوای جا بزنی؟ 🤨',
-    'دیگه اینجوری نمی‌شه‌ها 😐',
-    'باشه، آخرین شانستو بده ⚡'
+    'وا, شکلت داره عوض می‌شه‌ها 😏',
+    'واقعاً می‌خوای همینجوری عجیب بمونی؟ 🤨',
+    'باشه, آخرین شکلتو نشون بده ⚡'
   ],
   climaxVideo:'assets/videos/nikki3.mp4',
-  afterClimaxHTML:'بازم که نتونستی فرار کنی...<br>خب همینجا ادامه بدیم 💕',
+  afterClimaxHTML:'هرچقدر شکل عوض کردی، بازم جوابت پیش منه...<br>خب همینجا ادامه بدیم 💕',
   onAdvance:function(){ StageManager.goTo(4); }
 });
 
@@ -1282,7 +1268,6 @@ var App = {
     this.wireStage1();
     this.wireStage2();
     this.wireStage3();
-    this.wireStage4();
   },
   wireStage1:function(){
     document.getElementById('yesBtn1').addEventListener('click',function(){
@@ -1329,11 +1314,6 @@ var App = {
         addressInput.focus();
         setTimeout(function(){ addressInput.classList.remove('shake-input'); },420);
       }
-    });
-  },
-  wireStage4:function(){
-    document.getElementById('downloadSummaryBtn').addEventListener('click',function(){
-      SummaryManager.buildAndDownload();
     });
   }
 };
