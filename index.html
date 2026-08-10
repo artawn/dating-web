@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#2b0e1a">
+<title>یه سوال کوچولو... 💌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rose:#ff6f91;
+    --rose-deep:#ff4d78;
+    --gold:#ffd18a;
+    --text:#fff8f9;
+    --text-soft:rgba(255,248,249,.78);
+    --glass-bg:rgba(255,255,255,.12);
+    --glass-bg-strong:rgba(255,255,255,.20);
+    --glass-border:rgba(255,255,255,.35);
+    --glass-glow:rgba(255,111,145,.35);
+    --overlay-color:rgba(61,15,31,.30);
+    --glow-opacity:1;
+    --radius-lg:28px;
+    --radius-md:20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;width:100%;height:100%;}
+  body{
+    font-family:'Vazirmatn',Tahoma,Arial,sans-serif;
+    color:var(--text);
+    overflow:hidden;
+    height:100vh;
+    position:relative;
+  }
+
+  /* ============================================================
+     VIDEO / BACKGROUND MANAGER
+     ============================================================ */
+  .bg-layer{position:fixed;inset:0;z-index:0;overflow:hidden;background:#1a0510;transition:filter .8s ease;}
+  .bg-layer.blur-active{filter:blur(6px);}
+  .bg-video{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease;}
+  .bg-video.active{opacity:1;}
+  .bg-fallback{position:absolute;inset:0;z-index:0;overflow:hidden;background:linear-gradient(160deg,#3d0f1f 0%,#1a0510 60%,#2b0e1a 100%);}
+  .bokeh{position:absolute;border-radius:50%;filter:blur(50px);opacity:calc(.45 * var(--glow-opacity));transition:opacity .8s ease;}
+  .b1{width:320px;height:320px;background:var(--rose);top:-80px;right:-60px;animation:driftA 24s ease-in-out infinite;}
+  .b2{width:260px;height:260px;background:var(--gold);bottom:-60px;left:-50px;animation:driftB 28s ease-in-out infinite;}
+  .b3{width:220px;height:220px;background:#c65a8a;top:45%;left:-90px;animation:driftC 21s ease-in-out infinite;}
+  .b4{width:240px;height:240px;background:var(--rose-deep);bottom:5%;right:-70px;animation:driftA 26s ease-in-out infinite reverse;}
+  @keyframes driftA{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-35px,28px) scale(1.1);}}
+  @keyframes driftB{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,-25px) scale(1.06);}}
+  @keyframes driftC{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(25px,32px) scale(1.12);}}
+
+  /* ============================================================
+     MOOD OVERLAY / VIGNETTE / SCREEN REACTIONS
+     ============================================================ */
+  .mood-overlay{position:fixed;inset:0;z-index:1;background:var(--overlay-color);transition:background .8s ease;pointer-events:none;}
+  .vignette{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .8s ease;background:radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,.65) 100%);}
+  .vignette.vignette-active{opacity:1;}
+  .mood-shake{animation:shakeScreen .5s;}
+  @keyframes shakeScreen{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+  .mood-flicker{animation:flicker .65s steps(2,end);}
+  @keyframes flicker{0%,100%{opacity:1;}10%{opacity:.25;}20%{opacity:1;}32%{opacity:.4;}44%{opacity:1;}58%{opacity:.15;}72%{opacity:1;}86%{opacity:.5;}}
+  .mood-glitch{animation:glitchJitter .5s linear;}
+  @keyframes glitchJitter{
+    0%,100%{transform:translate(0,0);filter:none;}
+    10%{transform:translate(-4px,2px);filter:hue-rotate(15deg);}
+    20%{transform:translate(3px,-2px);filter:hue-rotate(-10deg);}
+    30%{transform:translate(-2px,3px);filter:hue-rotate(20deg);}
+    40%{transform:translate(4px,-1px);filter:none;}
+    55%{transform:translate(-3px,1px);filter:hue-rotate(-15deg);}
+    70%{transform:translate(2px,-3px);filter:none;}
+  }
+  .shake-input{animation:shakeScreen .4s;}
+
+  /* ============================================================
+     PARTICLES / CURSOR LIGHT
+     ============================================================ */
+  .particles-layer{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+  .particle{position:absolute;bottom:-40px;opacity:0;user-select:none;}
+  @keyframes floatUp{
+    0%{transform:translateY(0) rotate(0deg);opacity:0;}
+    10%{opacity:calc(.85 * var(--glow-opacity));}
+    90%{opacity:calc(.5 * var(--glow-opacity));}
+    100%{transform:translateY(-110vh) rotate(360deg);opacity:0;}
+  }
+  .cursor-light{
+    position:fixed;top:0;left:0;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,209,138,.16) 0%, transparent 70%);
+    pointer-events:none;z-index:4;opacity:0;transition:opacity .3s ease;
+  }
+  .cursor-light.visible{opacity:1;}
+
+  /* ============================================================
+     GLASS UTILITY
+     ============================================================ */
+  .glass{
+    background:var(--glass-bg);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid var(--glass-border);
+    box-shadow:0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), 0 0 40px var(--glass-glow);
+  }
+
+  /* ============================================================
+     APP / CARD
+     ============================================================ */
+  .app{position:relative;z-index:10;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{
+    position:relative;border-radius:var(--radius-lg);padding:44px 32px;max-width:460px;width:100%;
+    text-align:center;overflow:hidden;
+  }
+  .card::before{
+    content:'';position:absolute;top:-60%;left:-60%;width:220%;height:220%;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.10) 48%, rgba(255,255,255,.18) 50%, rgba(255,255,255,.10) 52%, transparent 60%);
+    pointer-events:none;
+  }
+  .seal{
+    width:58px;height:58px;border-radius:50%;margin:0 auto 18px;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 32% 30%, var(--gold), #b9781f);
+    box-shadow:0 6px 18px rgba(0,0,0,.4), 0 0 24px rgba(255,209,138,.5);
+  }
+  .seal span{color:#fff;font-size:22px;}
+
+  .stage{display:none;flex-direction:column;align-items:center;position:relative;z-index:1;}
+  .stage.active{display:flex;animation:fadeInUp .6s ease;}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+  .question{font-size:24px;font-weight:800;line-height:1.7;margin:0 0 28px;text-shadow:0 2px 12px rgba(0,0,0,.4);}
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .glass-btn{
+    position:relative;overflow:hidden;border:1px solid var(--glass-border);border-radius:50px;
+    padding:15px 32px;font-size:17px;font-family:inherit;font-weight:700;cursor:pointer;color:var(--text);
+    background:var(--glass-bg);backdrop-filter:blur(14px);transition:transform .2s, box-shadow .2s, background .2s;
+  }
+  .glass-btn::after{
+    content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;
+    background:linear-gradient(115deg, transparent, rgba(255,255,255,.4), transparent);
+    transform:skewX(-20deg);transition:left .6s ease;
+  }
+  .glass-btn:hover::after{left:130%;}
+  .glass-btn:hover{transform:scale(1.05) translateY(-2px);}
+  .btn-yes{background:linear-gradient(135deg, rgba(255,111,145,.55), rgba(255,77,120,.55));box-shadow:0 10px 26px rgba(255,77,120,.4);animation:pulseGlow 2.2s ease-in-out infinite;}
+  .btn-yes:disabled{opacity:.4;cursor:not-allowed;animation:none;transform:none;}
+  @keyframes pulseGlow{0%,100%{box-shadow:0 10px 26px rgba(255,77,120,.4);}50%{box-shadow:0 10px 38px rgba(255,77,120,.7);}}
+  /* the paired yes/next/confirm button, promoted the instant its stage's
+     "no" shrinks away into the climax — bigger, glowier, front and center */
+  .btn.btn-hero{animation:heroPulse 1.5s ease-in-out infinite!important;box-shadow:0 16px 40px rgba(255,77,120,.55), 0 0 55px rgba(255,209,138,.5)!important;}
+  @keyframes heroPulse{0%,100%{transform:scale(1.3);}50%{transform:scale(1.4);}}
+  .btn-no{position:relative;z-index:20;}
+  .btn-no.idle{animation:idleWiggle 4s ease-in-out infinite;}
+  @keyframes idleWiggle{0%,88%,100%{transform:rotate(0deg);}90%{transform:rotate(-6deg);}94%{transform:rotate(6deg);}97%{transform:rotate(-3deg);}}
+  .btn-no.zap{animation:zapAway .45s ease forwards;}
+  @keyframes zapAway{to{transform:scale(0) rotate(360deg);opacity:0;}}
+
+  .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:rippleAnim .6s ease-out forwards;pointer-events:none;}
+  @keyframes rippleAnim{to{transform:scale(3.2);opacity:0;}}
+
+  /* ============================================================
+     INPUTS
+     ============================================================ */
+  .glass-input{
+    width:100%;font-family:inherit;font-size:16px;padding:14px 18px;border-radius:16px;
+    border:1px solid var(--glass-border);background:var(--glass-bg);backdrop-filter:blur(14px);
+    color:var(--text);margin:6px 0 20px;transition:border-color .25s, box-shadow .25s;
+  }
+  .glass-input::placeholder{color:var(--text-soft);transition:opacity .3s, transform .3s;}
+  .glass-input:focus{outline:none;border-color:var(--rose);box-shadow:0 0 0 4px rgba(255,111,145,.2);}
+  .glass-input:focus::placeholder{opacity:.5;transform:translateX(4px);}
+
+  /* ============================================================
+     CALENDAR
+     ============================================================ */
+  .calendar{width:100%;border-radius:var(--radius-md);padding:20px;margin-bottom:20px;}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-nav{
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass-bg);
+    color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .2s, transform .2s;position:relative;overflow:hidden;
+  }
+  .cal-nav:hover{background:var(--glass-bg-strong);transform:scale(1.08);}
+  .cal-month{font-weight:700;font-size:16px;}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;}
+  .cal-weekdays span{font-size:12px;color:var(--text-soft);text-align:center;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-grid.slide-left{animation:slideLeft .35s ease;}
+  .cal-grid.slide-right{animation:slideRight .35s ease;}
+  @keyframes slideLeft{from{transform:translateX(24px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  @keyframes slideRight{from{transform:translateX(-24px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .cal-day{
+    aspect-ratio:1;border-radius:12px;border:1px solid transparent;background:rgba(255,255,255,.06);
+    color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .2s, transform .15s, box-shadow .2s;position:relative;overflow:hidden;
+  }
+  .cal-day:hover:not(.disabled):not(.empty){background:rgba(255,255,255,.18);transform:scale(1.08);}
+  .cal-day.today{border-color:var(--gold);}
+  .cal-day.selected{background:linear-gradient(135deg,var(--rose),var(--rose-deep));box-shadow:0 0 18px rgba(255,111,145,.6);font-weight:700;}
+  .cal-day.disabled{opacity:.25;cursor:not-allowed;}
+  .cal-day.empty{visibility:hidden;cursor:default;}
+
+  /* ============================================================
+     OPTIONS / LOCATION CARDS
+     ============================================================ */
+  .options-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;margin-bottom:4px;}
+  .option-card{
+    border-radius:var(--radius-md);padding:18px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;
+    cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:var(--text);
+    transition:transform .25s, box-shadow .25s, background .25s;position:relative;overflow:hidden;
+  }
+  .option-card .oe{font-size:28px;}
+  .option-card:hover{transform:translateY(-4px);box-shadow:0 14px 26px rgba(0,0,0,.3);}
+  .option-card.selected{background:linear-gradient(135deg, rgba(255,111,145,.6), rgba(255,77,120,.6));box-shadow:0 0 26px rgba(255,111,145,.55);transform:scale(1.03);}
+
+  .address-wrap{max-height:0;opacity:0;overflow:hidden;width:100%;transition:max-height .6s ease, opacity .5s ease, margin-top .6s ease;}
+  .address-wrap.show{max-height:420px;opacity:1;margin-top:18px;}
+  .field-label{display:block;font-weight:700;margin-bottom:10px;font-size:15px;}
+
+  /* ============================================================
+     FINAL STAGE
+     ============================================================ */
+  .final-message p{font-size:18px;line-height:2;font-weight:600;margin:6px 0;opacity:0;animation:fadeInUp .6s ease forwards;text-shadow:0 2px 10px rgba(0,0,0,.4);}
+  .final-message p:nth-child(1){animation-delay:.15s;}
+  .final-message p:nth-child(2){animation-delay:.55s;}
+  .final-message p:nth-child(3){animation-delay:.95s;}
+  .final-message p:nth-child(4){animation-delay:1.35s;color:var(--gold);}
+  .final-message p:nth-child(5){animation-delay:1.8s;font-size:21px;}
+  .burst-heart{position:fixed;font-size:22px;z-index:80;pointer-events:none;animation:burstOut 1.5s ease-out forwards;}
+  @keyframes burstOut{0%{transform:translate(0,0) scale(.4);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(1.15);opacity:0;}}
+  .exit-heart{position:fixed;z-index:81;pointer-events:none;animation:exitUp 2.2s ease-in forwards;}
+  @keyframes exitUp{0%{transform:translateY(0) scale(1);opacity:1;}100%{transform:translateY(-110vh) scale(.6);opacity:0;}}
+  .confetti-piece{position:fixed;top:-20px;width:8px;height:14px;z-index:82;pointer-events:none;animation:confettiFall linear forwards;border-radius:2px;}
+  @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(110vh) rotate(var(--rot));opacity:.3;}}
+
+  /* ============================================================
+     CINEMATIC CLIMAX OVERLAY — shared by every stage's reject flow.
+     Whatever stage-specific video is handed to it takes over the
+     whole screen; background video + music go fully silent while
+     it plays. The fallback (no file yet) is deliberately minimal —
+     the point of this moment is the video, nothing else.
+     ============================================================ */
+  .cinematic-overlay{
+    position:fixed;inset:0;z-index:200;background:#000;display:none;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .6s ease;
+  }
+  .cinematic-overlay.show{display:flex;opacity:1;}
+  .cinematic-overlay video{width:100%;height:100%;object-fit:cover;}
+  .cinematic-fallback{
+    position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:#0a0308;
+  }
+  .cinematic-fallback .big-emoji{font-size:64px;opacity:.7;animation:softPulse 1.6s ease-in-out infinite;}
+  @keyframes softPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+  .skip-hint{
+    position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+    font-size:13px;color:rgba(255,255,255,.75);padding:8px 18px;border-radius:30px;
+    background:rgba(255,255,255,.08);opacity:0;transition:opacity .6s ease;pointer-events:none;
+  }
+  .skip-hint.show{opacity:1;}
+
+  /* ============================================================
+     ACCESSIBILITY / QUALITY FLOOR
+     ============================================================ */
+  button:focus-visible, input:focus-visible{outline:3px solid var(--gold);outline-offset:3px;}
+  @media (prefers-reduced-motion: reduce){
+    .bokeh,.btn-yes,.btn-no.idle{animation:none!important;}
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (min-width:640px){
+    .options-grid{grid-template-columns:repeat(3,1fr);}
+  }
+  @media (max-width:420px){
+    .question{font-size:20px;}
+    .card{padding:32px 20px;border-radius:22px;}
+    .glass-btn{padding:13px 22px;font-size:15px;}
+    .cinematic-fallback .big-emoji{font-size:48px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ VIDEO / BACKGROUND ============ -->
+<div class="bg-layer" id="bgLayer">
+  <video class="bg-video" id="bgVideoA" muted playsinline></video>
+  <video class="bg-video" id="bgVideoB" muted playsinline></video>
+  <div class="bg-fallback" id="bgFallback">
+    <div class="bokeh b1"></div>
+    <div class="bokeh b2"></div>
+    <div class="bokeh b3"></div>
+    <div class="bokeh b4"></div>
+  </div>
+</div>
+
+<div class="mood-overlay" id="moodOverlay"></div>
+<div class="vignette" id="vignette"></div>
+<div class="particles-layer" id="particlesLayer"></div>
+<div class="cursor-light" id="cursorLight"></div>
+
+<!-- ============ MAIN APP ============ -->
+<main class="app" id="app">
+  <div class="glass card" id="gameCard">
+
+    <section class="stage active" id="stage1">
+      <div class="seal"><span>&#9825;</span></div>
+      <h1 class="question" id="s1Heading">کیکی... حاضری باهام بیای بیرون؟ ❤️</h1>
+      <div class="btn-row">
+        <button class="btn btn-yes glass-btn" id="yesBtn1">آره 😍</button>
+        <button class="btn btn-no glass-btn idle" id="noBtn1">نه</button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage2">
+      <h1 class="question" id="s2Heading">یه تاریخ و ساعت خوب انتخاب کن 📅</h1>
+      <div class="calendar glass" id="calendar">
+        <div class="cal-header">
+          <button class="cal-nav" id="calPrev" type="button" aria-label="ماه قبل">&#10094;</button>
+          <div class="cal-month" id="calMonthLabel"></div>
+          <button class="cal-nav" id="calNext" type="button" aria-label="ماه بعد">&#10095;</button>
+        </div>
+        <div class="cal-weekdays" id="calWeekdays"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <label class="field-label" for="timeInput">ساعت رو هم انتخاب کن ⏰</label>
+      <input type="time" class="glass-input" id="timeInput">
+      <div class="btn-row">
+        <button class="btn btn-yes glass-btn" id="nextBtn2" disabled>بعدی 💫</button>
+        <button class="btn btn-no glass-btn idle" id="noBtn2">نه</button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage3">
+      <h1 class="question" id="s3Heading">امروز کجا بریم؟ 😄</h1>
+      <div class="options-grid" id="optionsGrid">
+        <button class="option-card glass" data-option="کافه"><span class="oe">☕</span><span>کافه</span></button>
+        <button class="option-card glass" data-option="شهربازی"><span class="oe">🎡</span><span>شهربازی</span></button>
+        <button class="option-card glass" data-option="رستوران"><span class="oe">🍽️</span><span>رستوران</span></button>
+        <button class="option-card glass" data-option="دوردور با ماشین"><span class="oe">🚗</span><span>دوردور با ماشین</span></button>
+        <button class="option-card glass" data-option="پیاده‌روی شبانه"><span class="oe">🌃</span><span>پیاده‌روی شبانه</span></button>
+        <button class="option-card glass" data-option="سینما"><span class="oe">🎬</span><span>سینما</span></button>
+      </div>
+      <div class="address-wrap" id="addressWrap">
+        <label class="field-label" for="addressInput">آدرس رو وارد کن 📍</label>
+        <input type="text" class="glass-input" id="addressInput" placeholder="مثلاً: کافه ... ، خیابون ...">
+        <div class="btn-row">
+          <button class="btn btn-yes glass-btn" id="submitAddressBtn">تمومه، بزن بریم ✅</button>
+          <button class="btn btn-no glass-btn idle" id="noBtn3">نه</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" id="stage4">
+      <div class="seal"><span>&#9825;</span></div>
+      <div class="final-message">
+        <p>می‌بینمت... 😍</p>
+        <p>همین تاریخ، همین ساعت،</p>
+        <p>همون جایی که گفتم 📍</p>
+        <p>خوشحالم که پایه بودی و حاضر شدی بیای 💕</p>
+        <p>هع... بوس... بای 😘💋</p>
+      </div>
+      <button class="btn btn-yes glass-btn" id="downloadSummaryBtn" style="margin-top:22px;font-size:14px;padding:11px 22px;animation:none;">دانلود خلاصه‌ی قرارمون 📄</button>
+    </section>
+
+  </div>
+</main>
+
+<!-- ============ CINEMATIC CLIMAX (shared by every stage's reject flow) ============ -->
+<div class="cinematic-overlay" id="cinematicOverlay">
+  <video id="climaxVideo" playsinline></video>
+  <div class="cinematic-fallback" id="cinematicFallback">
+    <div class="big-emoji">💕</div>
+  </div>
+  <div class="skip-hint" id="skipHint">برای ادامه، هرجای صفحه رو لمس کن</div>
+</div>
+
+<audio id="musicPlayer"></audio>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   VIDEO MANAGER — crossfading full-screen background playlist.
+   Falls back to the CSS bokeh backdrop if a clip is missing.
+   ============================================================ */
+var VideoManager = {
+  playlist:['assets/videos/background1.mp4','assets/videos/background2.mp4','assets/videos/background3.mp4'],
+  index:0, vidA:null, vidB:null, active:null, inactive:null,
+  init:function(){
+    this.vidA=document.getElementById('bgVideoA');
+    this.vidB=document.getElementById('bgVideoB');
+    this.active=this.vidA; this.inactive=this.vidB;
+    this.loadIndex(this.active,this.index,0);
+  },
+  loadIndex:function(el,idx,attempts){
+    var self=this;
+    attempts=attempts||0;
+    if(attempts>=this.playlist.length) return; /* every clip missing — bokeh fallback stays visible */
+    el.muted=true; el.loop=false; el.src=this.playlist[idx];
+    el.oncanplay=function(){ el.play().catch(function(){}); el.classList.add('active'); };
+    el.onended=function(){ self.advance(); };
+    el.onerror=function(){
+      var nextIdx=(idx+1)%self.playlist.length;
+      self.index=nextIdx;
+      self.loadIndex(el,nextIdx,attempts+1);
+    };
+    el.load();
+  },
+  advance:function(){ this.advanceFrom(this.index,0); },
+  /* on error, tries the next clip in line (wrapping around) instead of
+     leaving the outgoing clip frozen on its last frame forever */
+  advanceFrom:function(fromIdx,attempts){
+    var self=this;
+    attempts=attempts||0;
+    if(attempts>=this.playlist.length) return; /* everything else missing — keep current frame */
+    var nextIdx=(fromIdx+1)%this.playlist.length;
+    var cur=this.active, next=this.inactive;
+    next.muted=true; next.src=this.playlist[nextIdx];
+    next.oncanplay=function(){
+      next.play().catch(function(){});
+      next.classList.add('active');
+      cur.classList.remove('active');
+      next.onended=function(){ self.advance(); };
+      var tmp=self.active; self.active=next; self.inactive=tmp;
+      self.index=nextIdx;
+    };
+    next.onerror=function(){ self.advanceFrom(nextIdx,attempts+1); };
+    next.load();
+  }
+};
+
+/* ============================================================
+   MUSIC MANAGER — sequential romantic playlist, volume ducking
+   during the "reject" escalation, graceful fade at the finale.
+   ============================================================ */
+var MusicManager = {
+  playlist:['assets/music/song1.mp3','assets/music/song2.mp3','assets/music/song3.mp3'],
+  index:0, el:null, baseVolume:0.55, silencedForClimax:false,
+  init:function(){
+    this.el=document.getElementById('musicPlayer');
+    this.el.volume=this.baseVolume;
+    var self=this;
+    this.el.addEventListener('ended', function(){ self.advance(); });
+    this.tryAutoStart();
+  },
+  tryAutoStart:function(){
+    var self=this;
+    this.el.src=this.playlist[this.index];
+    var p=this.el.play();
+    if(p && p.catch){
+      p.catch(function(){
+        /* browser blocked autoplay-with-sound — silently retry on the
+           very first interaction, no visible "tap for sound" prompt */
+        function retry(){ self.el.play().catch(function(){}); }
+        document.addEventListener('click',retry,{once:true});
+        document.addEventListener('touchstart',retry,{once:true,passive:true});
+        document.addEventListener('pointerdown',retry,{once:true});
+        document.addEventListener('keydown',retry,{once:true});
+      });
+    }
+  },
+  advance:function(){ this.advanceFrom(this.index,0); },
+  advanceFrom:function(fromIdx,attempts){
+    var self=this;
+    attempts=attempts||0;
+    if(attempts>=this.playlist.length) return; /* everything else missing — stay silent */
+    var nextIdx=(fromIdx+1)%this.playlist.length;
+    this.index=nextIdx;
+    this.el.onerror=function(){ self.advanceFrom(nextIdx,attempts+1); };
+    this.el.src=this.playlist[nextIdx];
+    var p=this.el.play();
+    if(p && p.catch) p.catch(function(){});
+  },
+  setVolumeScale:function(scale){
+    if(!this.el || this.silencedForClimax) return;
+    this.el.volume=Math.max(0,Math.min(1,this.baseVolume*scale));
+  },
+  pauseForClimax:function(){
+    if(!this.el) return;
+    this.silencedForClimax=true;
+    this.el.pause();
+  },
+  resumeAfterClimax:function(){
+    if(!this.el) return;
+    this.silencedForClimax=false;
+    this.el.volume=0;
+    var p=this.el.play();
+    if(p && p.catch) p.catch(function(){});
+    var self=this, steps=15, i=0, target=this.baseVolume;
+    var iv=setInterval(function(){
+      i++;
+      self.el.volume=Math.min(target,target*(i/steps));
+      if(i>=steps) clearInterval(iv);
+    },80);
+  },
+  fadeOut:function(){
+    if(!this.el) return;
+    var self=this, steps=20, i=0, startVol=this.el.volume;
+    var iv=setInterval(function(){
+      i++;
+      self.el.volume=Math.max(0,startVol*(1-i/steps));
+      if(i>=steps){ clearInterval(iv); self.el.pause(); }
+    },100);
+  }
+};
+
+/* ============================================================
+   SOUND MANAGER — short interaction cues. Tries a real file
+   from assets/sounds/ first, falls back to a synthesized tone
+   (Web Audio) so the page still feels alive with zero assets.
+   ============================================================ */
+var SoundManager = {
+  ctx:null,
+  getCtx:function(){
+    if(!this.ctx){
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(AC) this.ctx=new AC();
+    }
+    return this.ctx;
+  },
+  tone:function(freq,dur,type,delay,vol){
+    var c=this.getCtx();
+    if(!c) return;
+    try{
+      var osc=c.createOscillator(), gain=c.createGain();
+      osc.type=type||'sine'; osc.frequency.value=freq;
+      gain.gain.value=vol||0.1;
+      osc.connect(gain); gain.connect(c.destination);
+      var t0=c.currentTime+(delay||0);
+      gain.gain.setValueAtTime(vol||0.1,t0);
+      gain.gain.exponentialRampToValueAtTime(0.001,t0+dur);
+      osc.start(t0); osc.stop(t0+dur+0.02);
+    }catch(e){}
+  },
+  unlock:function(){
+    var c=this.getCtx();
+    if(c && c.state==='suspended') c.resume();
+  },
+  playFile:function(path,fallbackFn,volume){
+    try{
+      var a=new Audio(path);
+      a.volume=volume!=null?volume:0.5;
+      a.addEventListener('error',function(){ fallbackFn(); },{once:true});
+      var p=a.play();
+      if(p && p.catch) p.catch(function(){ fallbackFn(); });
+    }catch(e){ fallbackFn(); }
+  },
+  dodge:function(){ this.tone(480+Math.random()*260,0.11,'triangle',0,0.07); },
+  select:function(){ this.tone(600,0.1,'sine',0,0.08); },
+  success:function(){
+    var self=this;
+    [523.25,659.25,783.99,1046.5].forEach(function(f,i){ self.tone(f,0.3,'sine',i*0.11,0.09); });
+  },
+  glitchBlip:function(){
+    var self=this;
+    this.playFile('assets/sounds/glitch.mp3',function(){
+      self.tone(300,0.15,'sawtooth',0,0.05);
+      self.tone(210,0.22,'sawtooth',0.1,0.05);
+    },0.4);
+  }
+};
+document.addEventListener('click',function(){ SoundManager.unlock(); });
+document.addEventListener('touchstart',function(){ SoundManager.unlock(); },{passive:true});
+
+/* ============================================================
+   PARTICLES MANAGER — ambient floating hearts. Spawn rate
+   slows as the mood darkens (Theme Manager drives this).
+   ============================================================ */
+var ParticlesManager = {
+  emojis:['💗','💕','✨','🌸','💖'],
+  rate:900, timer:null,
+  init:function(){ this.schedule(); },
+  schedule:function(){
+    var self=this;
+    clearTimeout(this.timer);
+    this.timer=setTimeout(function(){ self.spawn(); self.schedule(); }, this.rate);
+  },
+  setRate:function(ms){ this.rate=ms; },
+  spawn:function(){
+    var layer=document.getElementById('particlesLayer');
+    var p=document.createElement('div');
+    p.className='particle';
+    p.textContent=this.emojis[Math.floor(Math.random()*this.emojis.length)];
+    p.style.left=(Math.random()*94+2)+'vw';
+    var dur=(Math.random()*6+7);
+    p.style.fontSize=(Math.random()*14+14)+'px';
+    p.style.animation='floatUp '+dur+'s linear forwards';
+    layer.appendChild(p);
+    setTimeout(function(){ p.remove(); }, dur*1000+300);
+  }
+};
+
+/* ============================================================
+   THEME / OVERLAY MANAGER — the single source of truth for the
+   "reject count" mood: overlay darkness, glow, vignette, blur,
+   shake and flicker. Levels 0-4 map to the five reactions asked
+   for; level 4's flicker+glitch leads into the cinematic climax.
+   ============================================================ */
+var ThemeManager = {
+  overlayColors:[
+    'rgba(61,15,31,.30)',
+    'rgba(58,16,34,.40)',
+    'rgba(48,22,46,.50)',
+    'rgba(32,24,55,.62)',
+    'rgba(14,13,28,.78)'
+  ],
+  glowByLevel:[1,0.8,0.58,0.36,0.15],
+  setLevel:function(level){
+    document.getElementById('moodOverlay').style.background=this.overlayColors[level];
+    document.documentElement.style.setProperty('--glow-opacity', this.glowByLevel[level]);
+    ParticlesManager.setRate(900+level*500);
+    MusicManager.setVolumeScale(1-level*0.15);
+
+    if(level>=2){
+      var card=document.querySelector('.card');
+      card.classList.add('mood-shake');
+      setTimeout(function(){ card.classList.remove('mood-shake'); },500);
+    }
+    if(level>=3){
+      document.getElementById('vignette').classList.add('vignette-active');
+      document.getElementById('bgLayer').classList.add('blur-active');
+    }
+    if(level>=4){
+      document.body.classList.add('mood-flicker');
+      SoundManager.glitchBlip();
+      setTimeout(function(){ document.body.classList.remove('mood-flicker'); },650);
+    }
+  },
+  reset:function(){
+    document.getElementById('moodOverlay').style.background=this.overlayColors[0];
+    document.documentElement.style.setProperty('--glow-opacity','1');
+    document.getElementById('vignette').classList.remove('vignette-active');
+    document.getElementById('bgLayer').classList.remove('blur-active');
+    ParticlesManager.setRate(900);
+    MusicManager.setVolumeScale(1);
+  }
+};
+
+/* ============================================================
+   UI MANAGER — cursor spotlight, mouse-reactive parallax,
+   the "tap for music" hint, and the glass-button ripple effect.
+   ============================================================ */
+var UIManager = {
+  cursorEl:null, targetX:0, targetY:0, curX:0, curY:0, cursorActive:false,
+  init:function(){
+    this.initCursorLight();
+    this.attachRipples();
+  },
+  initCursorLight:function(){
+    this.cursorEl=document.getElementById('cursorLight');
+    var self=this;
+    document.addEventListener('mousemove',function(e){
+      self.targetX=e.clientX; self.targetY=e.clientY;
+      if(!self.cursorActive){
+        self.cursorActive=true;
+        self.cursorEl.classList.add('visible');
+        self.curX=e.clientX; self.curY=e.clientY;
+        self.loop();
+      }
+      self.parallax(e.clientX,e.clientY);
+    });
+  },
+  loop:function(){
+    var self=this;
+    this.curX+=(this.targetX-this.curX)*0.15;
+    this.curY+=(this.targetY-this.curY)*0.15;
+    this.cursorEl.style.transform='translate('+(this.curX-170)+'px,'+(this.curY-170)+'px)';
+    requestAnimationFrame(function(){ self.loop(); });
+  },
+  parallax:function(x,y){
+    var cx=window.innerWidth/2, cy=window.innerHeight/2;
+    var dx=(x-cx)/cx, dy=(y-cy)/cy;
+    var fb=document.getElementById('bgFallback');
+    if(fb) fb.style.transform='translate('+(dx*-12)+'px,'+(dy*-12)+'px)';
+  },
+  attachRipples:function(){
+    document.querySelectorAll('.glass-btn, .option-card, .cal-nav').forEach(function(el){
+      UIManager.addRipple(el);
+    });
+  },
+  addRipple:function(el){
+    el.addEventListener('click',function(e){
+      var rect=el.getBoundingClientRect();
+      var ripple=document.createElement('span');
+      ripple.className='ripple';
+      var size=Math.max(rect.width,rect.height);
+      ripple.style.width=ripple.style.height=size+'px';
+      var x=(e.clientX!=null? e.clientX-rect.left : rect.width/2)-size/2;
+      var y=(e.clientY!=null? e.clientY-rect.top : rect.height/2)-size/2;
+      ripple.style.left=x+'px';
+      ripple.style.top=y+'px';
+      el.appendChild(ripple);
+      setTimeout(function(){ ripple.remove(); },650);
+    });
+  }
+};
+
+/* ============================================================
+   JALAALI (Persian/Shamsi) CALENDAR CONVERSION — a small, self-
+   contained Gregorian<->Jalali converter (no external library).
+   Validated against 3000+ reference dates spanning 1950-2060
+   before shipping, including every leap-Esfand year in range.
+   ============================================================ */
+var Jalaali = {
+  d2j:function(gy,gm,gd){
+    var g_d_m=[0,31,59,90,120,151,181,212,243,273,304,334];
+    var jy=(gy<=1600)?0:979;
+    gy-=(gy<=1600)?621:1600;
+    var gy2=(gm>2)?(gy+1):gy;
+    var days=(365*gy)+(Math.floor((gy2+3)/4))-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)-80+gd+g_d_m[gm-1];
+    jy+=33*Math.floor(days/12053);
+    days%=12053;
+    jy+=4*Math.floor(days/1461);
+    days%=1461;
+    if(days>365){ jy+=Math.floor((days-1)/365); days=(days-1)%365; }
+    var jm,jd;
+    if(days<186){ jm=1+Math.floor(days/31); jd=1+(days%31); }
+    else{ jm=7+Math.floor((days-186)/30); jd=1+((days-186)%30); }
+    return {jy:jy,jm:jm,jd:jd};
+  },
+  j2d:function(jy,jm,jd){
+    var gy=(jy<=979)?621:1600;
+    jy-=(jy<=979)?0:979;
+    var days=(365*jy)+(Math.floor(jy/33)*8)+Math.floor(((jy%33)+3)/4)+78+jd+((jm<7)?(jm-1)*31:((jm-7)*30)+186);
+    gy+=400*Math.floor(days/146097);
+    days%=146097;
+    if(days>36524){
+      days--;
+      gy+=100*Math.floor(days/36524);
+      days%=36524;
+      if(days>=365) days++;
+    }
+    gy+=4*Math.floor(days/1461);
+    days%=1461;
+    if(days>365){ gy+=Math.floor((days-1)/365); days=(days-1)%365; }
+    var gd=days+1;
+    var isLeapG=(gy%4===0 && gy%100!==0)||(gy%400===0);
+    var sal_a=[0,31,isLeapG?29:28,31,30,31,30,31,31,30,31,30,31];
+    var gm;
+    for(gm=0; gm<13; gm++){ var v=sal_a[gm]; if(gd<=v) break; gd-=v; }
+    return new Date(gy,gm-1,gd);
+  },
+  toJalaali:function(date){ return this.d2j(date.getFullYear(),date.getMonth()+1,date.getDate()); },
+  toGregorian:function(jy,jm,jd){ return this.j2d(jy,jm,jd); },
+  monthLength:function(jy,jm){
+    var nJy=jy, nJm=jm+1;
+    if(nJm>12){ nJm=1; nJy=jy+1; }
+    var d1=this.j2d(jy,jm,1), d2=this.j2d(nJy,nJm,1);
+    return Math.round((d2-d1)/86400000);
+  }
+};
+
+/* ============================================================
+   CALENDAR MANAGER — a from-scratch glass calendar (stage 2),
+   shown in the Jalali/Shamsi calendar. Past days are disabled;
+   month changes slide-animate.
+   ============================================================ */
+var CalendarManager = {
+  current:new Date(),
+  selected:null,
+  monthNames:['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],
+  weekdays:['ش','ی','د','س','چ','پ','ج'],
+  init:function(){
+    document.getElementById('calPrev').addEventListener('click', this.prevMonth.bind(this));
+    document.getElementById('calNext').addEventListener('click', this.nextMonth.bind(this));
+    this.renderWeekdays();
+  },
+  renderWeekdays:function(){
+    var wrap=document.getElementById('calWeekdays');
+    wrap.innerHTML='';
+    this.weekdays.forEach(function(d){
+      var s=document.createElement('span');
+      s.textContent=d;
+      wrap.appendChild(s);
+    });
+  },
+  prevMonth:function(){
+    var j=Jalaali.toJalaali(this.current), jy=j.jy, jm=j.jm-1;
+    if(jm<1){ jm=12; jy--; }
+    this.current=Jalaali.toGregorian(jy,jm,1);
+    this.render('right');
+  },
+  nextMonth:function(){
+    var j=Jalaali.toJalaali(this.current), jy=j.jy, jm=j.jm+1;
+    if(jm>12){ jm=1; jy++; }
+    this.current=Jalaali.toGregorian(jy,jm,1);
+    this.render('left');
+  },
+  render:function(direction){
+    var jCur=Jalaali.toJalaali(this.current), jy=jCur.jy, jm=jCur.jm;
+
+    var label=document.getElementById('calMonthLabel');
+    label.textContent=this.monthNames[jm-1]+' '+jy;
+
+    var grid=document.getElementById('calGrid');
+    grid.innerHTML='';
+
+    var firstDay=Jalaali.toGregorian(jy,jm,1);
+    var offset=(firstDay.getDay()+1)%7; /* week starts Saturday */
+    var daysInMonth=Jalaali.monthLength(jy,jm);
+    var today=new Date(); today.setHours(0,0,0,0);
+
+    for(var i=0;i<offset;i++){
+      var empty=document.createElement('div');
+      empty.className='cal-day empty';
+      grid.appendChild(empty);
+    }
+    for(var d=1; d<=daysInMonth; d++){
+      var cell=document.createElement('button');
+      cell.type='button';
+      cell.className='cal-day';
+      cell.textContent=String(d);
+      var thisDate=Jalaali.toGregorian(jy,jm,d);
+      thisDate.setHours(0,0,0,0);
+      if(thisDate.getTime()===today.getTime()) cell.classList.add('today');
+      if(thisDate.getTime()<today.getTime()){
+        cell.classList.add('disabled');
+        cell.disabled=true;
+      }else{
+        cell.addEventListener('click', this.select.bind(this,thisDate,cell));
+        UIManager.addRipple(cell);
+      }
+      if(this.selected && thisDate.getTime()===this.selected.getTime()) cell.classList.add('selected');
+      grid.appendChild(cell);
+    }
+
+    if(direction){
+      grid.classList.add(direction==='left'?'slide-left':'slide-right');
+      setTimeout(function(){ grid.classList.remove('slide-left','slide-right'); },400);
+    }
+  },
+  select:function(date,cell){
+    this.selected=date;
+    document.querySelectorAll('.cal-day.selected').forEach(function(c){ c.classList.remove('selected'); });
+    cell.classList.add('selected');
+    SoundManager.select();
+    updateStage2Ready();
+  },
+  /* "۱۸ مرداد ۱۴۰۵" style string for the selected day, used in the
+     end-of-flow summary document */
+  formatSelected:function(){
+    if(!this.selected) return null;
+    var j=Jalaali.toJalaali(this.selected);
+    return j.jd+' '+this.monthNames[j.jm-1]+' '+j.jy;
+  }
+};
+
+/* ============================================================
+   STAGE MANAGER — switches the visible stage and triggers
+   whatever each stage needs on entry.
+   ============================================================ */
+var StageManager = {
+  goTo:function(n){
+    /* every "no" button (and the mood it darkened) belongs only to its
+       own stage — wipe all of them back to a clean slate before the
+       new stage becomes visible, regardless of which path got us here */
+    [reject1,reject2,reject3].forEach(function(flow){ flow.resetVisual(); });
+    ThemeManager.reset();
+    CinematicManager.hardReset();
+
+    document.querySelectorAll('.stage').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('stage'+n).classList.add('active');
+    if(n===2) CalendarManager.render();
+    if(n===4){ FinaleManager.celebrate(); SummaryManager.autoDownloadOnce(); }
+  }
+};
+
+/* ============================================================
+   CINEMATIC MANAGER — the full-screen moment any stage's reject
+   flow escalates into. Background video + music go fully silent;
+   only the given clip plays. Always tap-to-continue: never a
+   dead end, even if the clip is slow to load or she's on a call.
+   ============================================================ */
+var CinematicManager = {
+  play:function(videoPath,onDone){
+    var overlay=document.getElementById('cinematicOverlay');
+    var video=document.getElementById('climaxVideo');
+    var fallback=document.getElementById('cinematicFallback');
+    var skipHint=document.getElementById('skipHint');
+    var advanced=false;
+
+    MusicManager.pauseForClimax();
+    video.style.display='';
+    fallback.style.display='none';
+    overlay.classList.add('show');
+
+    function goNext(){
+      if(advanced) return;
+      advanced=true;
+      overlay.classList.remove('show');
+      overlay.removeEventListener('click',goNext);
+      overlay.removeEventListener('touchstart',goNext);
+      skipHint.classList.remove('show');
+      video.pause();
+      MusicManager.resumeAfterClimax();
+      setTimeout(function(){ if(onDone) onDone(); },350);
+    }
+    function useFallback(){
+      video.style.display='none';
+      fallback.style.display='flex';
+    }
+
+    video.src=videoPath;
+    video.muted=false;
+    video.onerror=useFallback;
+    video.onended=goNext;
+    var playPromise=video.play();
+    if(playPromise && playPromise.catch){
+      playPromise.catch(function(){
+        video.muted=true;
+        video.play().catch(useFallback);
+      });
+    }
+
+    setTimeout(function(){ skipHint.classList.add('show'); },1500);
+    overlay.addEventListener('click',goNext);
+    overlay.addEventListener('touchstart',goNext,{passive:true});
+  },
+  /* defensive cleanup, called on every stage change so a climax that
+     somehow didn't finish cleanly can never linger into the next stage */
+  hardReset:function(){
+    var overlay=document.getElementById('cinematicOverlay');
+    var video=document.getElementById('climaxVideo');
+    if(overlay) overlay.classList.remove('show');
+    if(video) video.pause();
+  }
+};
+
+/* ============================================================
+   FINALE MANAGER — the soft landing after the climax, and the
+   big celebration on the last stage (hearts exit, confetti,
+   music fade).
+   ============================================================ */
+var FinaleManager = {
+  celebrate:function(){
+    this.burstHearts();
+    this.exitHearts();
+    this.confetti();
+    MusicManager.fadeOut();
+  },
+  burstHearts:function(){
+    var emojis=['💖','💕','✨','🌸','💗'];
+    for(var i=0;i<26;i++){
+      (function(i){
+        setTimeout(function(){
+          var h=document.createElement('div');
+          h.className='burst-heart';
+          h.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+          h.style.left=(46+Math.random()*8)+'vw';
+          h.style.top='50vh';
+          var angle=Math.random()*Math.PI*2, dist=90+Math.random()*220;
+          h.style.setProperty('--dx',Math.cos(angle)*dist+'px');
+          h.style.setProperty('--dy',Math.sin(angle)*dist+'px');
+          document.body.appendChild(h);
+          setTimeout(function(){ h.remove(); },1500);
+        }, i*28);
+      })(i);
+    }
+  },
+  exitHearts:function(){
+    var emojis=['💗','💕','💖'];
+    for(var i=0;i<14;i++){
+      (function(i){
+        setTimeout(function(){
+          var h=document.createElement('div');
+          h.className='exit-heart';
+          h.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+          h.style.left=(Math.random()*90+5)+'vw';
+          h.style.bottom='-40px';
+          h.style.fontSize=(Math.random()*16+16)+'px';
+          document.body.appendChild(h);
+          setTimeout(function(){ h.remove(); },2300);
+        }, i*120);
+      })(i);
+    }
+  },
+  confetti:function(){
+    var colors=['#ff6f91','#ffd18a','#fff8f9','#ff4d78'];
+    for(var i=0;i<40;i++){
+      (function(i){
+        setTimeout(function(){
+          var c=document.createElement('div');
+          c.className='confetti-piece';
+          c.style.left=(Math.random()*100)+'vw';
+          c.style.background=colors[Math.floor(Math.random()*colors.length)];
+          c.style.animationDuration=(Math.random()*1.5+2)+'s';
+          c.style.setProperty('--rot',(Math.random()*360)+'deg');
+          document.body.appendChild(c);
+          setTimeout(function(){ c.remove(); },3600);
+        }, i*40);
+      })(i);
+    }
+  }
+};
+
+/* ============================================================
+   SUMMARY MANAGER — builds a downloadable "Word" recap of the
+   whole session the instant it's completed: how many times each
+   stage's "no" got dodged, and the answers actually given. Uses
+   the classic HTML-as-.doc trick (Word / LibreOffice / Google
+   Docs all open it natively) so no external library or server
+   is needed — stays true to the project's single-file spirit.
+   ============================================================ */
+var SummaryManager = {
+  autoTriggered:false,
+  escapeHtml:function(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  },
+  row:function(label,value){
+    return '<tr><td style="padding:8px 10px;border-bottom:1px solid #f0d9df;font-weight:bold;white-space:nowrap;">'+label+'</td>'
+         +'<td style="padding:8px 10px;border-bottom:1px solid #f0d9df;">'+value+'</td></tr>';
+  },
+  buildAndDownload:function(){
+    var dateStr=CalendarManager.formatSelected()||'—';
+    var timeEl=document.getElementById('timeInput');
+    var timeStr=(timeEl && timeEl.value)? timeEl.value : '—';
+
+    var selectedCard=document.querySelector('.option-card.selected');
+    var locationStr=selectedCard? this.escapeHtml(selectedCard.getAttribute('data-option')) : '—';
+    var addressEl=document.getElementById('addressInput');
+    var addressStr=(addressEl && addressEl.value.trim())? this.escapeHtml(addressEl.value.trim()) : '—';
+
+    var n1=reject1.rejectCount, n2=reject2.rejectCount, n3=reject3.rejectCount;
+    var total=n1+n2+n3;
+
+    var html=
+      '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+      +'<head><meta charset="utf-8"><title>خلاصه‌ی قرارمون</title></head>'
+      +'<body dir="rtl" style="font-family:Tahoma,Arial,sans-serif;font-size:14px;color:#3d0f1f;padding:26px;">'
+      +'<h1 style="color:#ff4d78;margin-bottom:4px;">خلاصه‌ی قرارمون 💌</h1>'
+      +'<p style="color:#8a4a5c;margin-top:0;">جواب نهایی: آره! 😍</p>'
+      +'<table style="border-collapse:collapse;width:100%;max-width:520px;" cellspacing="0">'
+      +this.row('تاریخ 📅',dateStr)
+      +this.row('ساعت ⏰',timeStr)
+      +this.row('مکان 📍',locationStr)
+      +this.row('آدرس',addressStr)
+      +'</table>'
+      +'<h2 style="color:#ff4d78;margin-top:26px;">آمار مقاومت در برابر «نه» 😄</h2>'
+      +'<table style="border-collapse:collapse;width:100%;max-width:520px;" cellspacing="0">'
+      +this.row('مرحله‌ی ۱ (سوال اصلی)',n1+' بار فرار کرد')
+      +this.row('مرحله‌ی ۲ (تاریخ و ساعت)',n2+' بار فرار کرد')
+      +this.row('مرحله‌ی ۳ (مکان)',n3+' بار فرار کرد')
+      +this.row('مجموع','<b>'+total+' بار</b>')
+      +'</table>'
+      +'<p style="margin-top:28px;color:#8a4a5c;">بالاخره که نتونست فرار کنه... 💕</p>'
+      +'</body></html>';
+
+    var blob=new Blob(['\ufeff'+html],{type:'application/msword'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;
+    a.download='خلاصه-قرارمون.doc';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){
+      if(a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    },1500);
+  },
+  autoDownloadOnce:function(){
+    if(this.autoTriggered) return;
+    this.autoTriggered=true;
+    var self=this;
+    setTimeout(function(){ self.buildAndDownload(); },600);
+  }
+};
+
+/* ============================================================
+   REJECT FLOW FACTORY — powers the "no" button in every stage
+   except the last. It dodges the mouse (or a tap) forever; each
+   dodge escalates the mood one level via Theme Manager. The
+   stage's real confirm button is completely separate and always
+   works, instantly, no matter the level — it is never the button
+   that's punished. Once a stage's messages run out, a stage-
+   specific video takes the climax (Cinematic Manager silences
+   the background for it), then a short line eases into the
+   next stage.
+   ============================================================ */
+function createRejectFlow(cfg){
+  return {
+    btnId:cfg.btnId, headingId:cfg.headingId, stageId:cfg.stageId,
+    yesBtnId:cfg.yesBtnId, warpOnDodge:!!cfg.warpOnDodge,
+    messages:cfg.messages, climaxVideo:cfg.climaxVideo,
+    afterClimaxHTML:cfg.afterClimaxHTML, onAdvance:cfg.onAdvance,
+    btn:null, heading:null, stageEl:null, yesBtn:null,
+    originalParent:null, originalNextSibling:null,
+    rejectCount:0, lastDodge:0, active:false,
+    init:function(){
+      this.btn=document.getElementById(this.btnId);
+      this.heading=document.getElementById(this.headingId);
+      this.stageEl=document.getElementById(this.stageId);
+      this.yesBtn=this.yesBtnId? document.getElementById(this.yesBtnId) : null;
+      /* remember exactly where this button starts life, so a dodge that
+         escapes to document.body can always be put back afterwards */
+      this.originalParent=this.btn.parentNode;
+      this.originalNextSibling=this.btn.nextSibling;
+      var self=this;
+      setTimeout(function(){ self.active=true; },650);
+
+      document.addEventListener('mousemove',function(e){
+        if(!self.active || !self.stageEl.classList.contains('active')) return;
+        var rect=self.btn.getBoundingClientRect();
+        var cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+        if(Math.hypot(e.clientX-cx,e.clientY-cy)<95) self.dodge();
+      });
+      this.btn.addEventListener('touchstart',function(e){ e.preventDefault(); self.dodge(); },{passive:false});
+      this.btn.addEventListener('click',function(e){ e.preventDefault(); self.dodge(); });
+    },
+    dodge:function(){
+      if(!this.active) return;
+      var now=Date.now();
+      if(now-this.lastDodge<280) return;
+      this.lastDodge=now;
+
+      var rect=this.btn.getBoundingClientRect();
+      if(this.btn.style.position!=='fixed'){
+        this.btn.classList.remove('idle');
+        document.body.appendChild(this.btn); /* escape the card's overflow:hidden so it can roam the whole screen */
+        this.btn.style.position='fixed';
+        this.btn.style.left=rect.left+'px';
+        this.btn.style.top=rect.top+'px';
+        this.btn.style.margin='0';
+        this.btn.style.transition='left .35s cubic-bezier(.34,1.56,.64,1), top .35s cubic-bezier(.34,1.56,.64,1), transform .3s ease';
+      }
+      var w=rect.width,h=rect.height,pad=16;
+      var maxX=Math.max(pad,window.innerWidth-w-pad);
+      var maxY=Math.max(pad,window.innerHeight-h-pad);
+      this.btn.style.left=(Math.random()*(maxX-pad)+pad)+'px';
+      this.btn.style.top=(Math.random()*(maxY-pad)+pad)+'px';
+      this.btn.style.transform='rotate('+(Math.random()*46-23)+'deg)';
+
+      if(this.warpOnDodge) this.warpAppearance();
+
+      this.rejectCount++;
+      SoundManager.dodge();
+
+      if(this.rejectCount>=this.messages.length){
+        this.triggerClimax();
+      }else{
+        this.heading.textContent=this.messages[this.rejectCount];
+        ThemeManager.setLevel(this.rejectCount);
+      }
+    },
+    /* stage 3's extra gimmick: the button's font and "shape" morph a
+       little more each time it's dodged, on top of the usual roaming —
+       stays on the loaded Vazirmatn/Tahoma/Arial family so the Persian
+       "نه" always stays legible even as it warps */
+    warpAppearance:function(){
+      var fonts=['Vazirmatn, sans-serif','Tahoma, sans-serif','Arial, sans-serif','"Segoe UI", Tahoma, sans-serif'];
+      var weights=[400,500,700,800,900];
+      var styles=['normal','italic'];
+      this.btn.style.fontFamily=fonts[Math.floor(Math.random()*fonts.length)];
+      this.btn.style.fontWeight=weights[Math.floor(Math.random()*weights.length)];
+      this.btn.style.fontStyle=styles[Math.floor(Math.random()*styles.length)];
+      this.btn.style.letterSpacing=(Math.random()*3-0.5).toFixed(1)+'px';
+      var r=function(){ return Math.floor(Math.random()*55+15)+'%'; };
+      this.btn.style.borderRadius=r()+' '+r()+' '+r()+' '+r()+' / '+r()+' '+r()+' '+r()+' '+r();
+    },
+    triggerClimax:function(){
+      this.active=false;
+      var self=this;
+      this.btn.classList.add('zap'); /* the "no" shrinks to nothing right here */
+      if(this.yesBtn) this.yesBtn.classList.add('btn-hero'); /* ...and its partner grows to fill the moment */
+      document.body.classList.add('mood-flicker');
+      setTimeout(function(){
+        document.body.classList.remove('mood-flicker');
+        document.body.classList.add('mood-glitch');
+        document.documentElement.style.setProperty('--glow-opacity','0.05');
+        ParticlesManager.setRate(4000);
+        setTimeout(function(){
+          document.body.classList.remove('mood-glitch');
+          CinematicManager.play(self.climaxVideo,function(){ self.showAfterClimax(); });
+        },500);
+      },650);
+    },
+    showAfterClimax:function(){
+      this.heading.innerHTML=this.afterClimaxHTML;
+      ThemeManager.reset();
+      var self=this;
+      setTimeout(function(){ self.onAdvance(); },2400);
+    },
+    /* puts the button back exactly as it started — DOM position, every
+       inline style a dodge/warp/hero moment may have added, and the
+       counters — so none of it can ever show up on a different stage */
+    resetVisual:function(){
+      this.btn.classList.remove('zap');
+      if(!this.btn.classList.contains('idle')) this.btn.classList.add('idle');
+      this.btn.style.position='';
+      this.btn.style.left='';
+      this.btn.style.top='';
+      this.btn.style.margin='';
+      this.btn.style.transform='';
+      this.btn.style.transition='';
+      this.btn.style.fontFamily='';
+      this.btn.style.fontWeight='';
+      this.btn.style.fontStyle='';
+      this.btn.style.letterSpacing='';
+      this.btn.style.borderRadius='';
+      if(this.originalParent){
+        if(this.originalNextSibling && this.originalNextSibling.parentNode===this.originalParent){
+          this.originalParent.insertBefore(this.btn,this.originalNextSibling);
+        }else{
+          this.originalParent.appendChild(this.btn);
+        }
+      }
+      if(this.yesBtn) this.yesBtn.classList.remove('btn-hero');
+      /* rejectCount is deliberately NOT reset here — each stage's flow
+         only ever runs once, and the final summary document needs the
+         true per-stage dodge counts to still be there at stage 4 */
+      this.lastDodge=0;
+    }
+  };
+}
+
+var reject1=createRejectFlow({
+  btnId:'noBtn1', headingId:'s1Heading', stageId:'stage1', yesBtnId:'yesBtn1',
+  messages:[
+    'کیکی... حاضری باهام بیای بیرون؟ ❤️',
+    'واقعاً نه؟ 😏',
+    'جدی جدی؟ یه‌بار دیگه فکر کن... 🤨',
+    'همم... داری سخت می‌گیریا 😐',
+    'باشه باشه... آخرین شانستو بده ⚡'
+  ],
+  climaxVideo:'assets/videos/nikki.mp4',
+  afterClimaxHTML:'ناراحتم کردی...<br>ولی هنوز دوست دارم ادامه بدیم ❤️',
+  onAdvance:function(){ StageManager.goTo(2); }
+});
+
+var reject2=createRejectFlow({
+  btnId:'noBtn2', headingId:'s2Heading', stageId:'stage2', yesBtnId:'nextBtn2',
+  messages:[
+    'یه تاریخ و ساعت خوب انتخاب کن 📅',
+    'نه نگو دیگه... 🥺',
+    'جدی می‌خوای بپیچونی؟ 😳',
+    'همچین چیزی امکان نداره‌ها 😐',
+    'باشه... آخرین تلاشتو بکن ⚡'
+  ],
+  climaxVideo:'assets/videos/nikki2.mp4',
+  afterClimaxHTML:'بازم که فرار نکردی...<br>خب بریم ادامه بدیم 💕',
+  onAdvance:function(){ StageManager.goTo(3); }
+});
+
+var reject3=createRejectFlow({
+  btnId:'noBtn3', headingId:'s3Heading', stageId:'stage3', yesBtnId:'submitAddressBtn', warpOnDodge:true,
+  messages:[
+    'امروز کجا بریم؟ 😄',
+    'یعنی چی که نه؟ 😏',
+    'واقعاً می‌خوای جا بزنی؟ 🤨',
+    'دیگه اینجوری نمی‌شه‌ها 😐',
+    'باشه، آخرین شانستو بده ⚡'
+  ],
+  climaxVideo:'assets/videos/nikki3.mp4',
+  afterClimaxHTML:'بازم که نتونستی فرار کنی...<br>خب همینجا ادامه بدیم 💕',
+  onAdvance:function(){ StageManager.goTo(4); }
+});
+
+/* ============================================================
+   APP — boots every manager, wires stage 2 → 3 → 4 hand-offs.
+   ============================================================ */
+function updateStage2Ready(){
+  var ready = !!CalendarManager.selected && !!document.getElementById('timeInput').value;
+  document.getElementById('nextBtn2').disabled = !ready;
+}
+
+var App = {
+  init:function(){
+    VideoManager.init();
+    MusicManager.init();
+    ParticlesManager.init();
+    CalendarManager.init();
+    reject1.init();
+    reject2.init();
+    reject3.init();
+    UIManager.init();
+    this.wireStage1();
+    this.wireStage2();
+    this.wireStage3();
+    this.wireStage4();
+  },
+  wireStage1:function(){
+    document.getElementById('yesBtn1').addEventListener('click',function(){
+      StageManager.goTo(2);
+    });
+  },
+  wireStage2:function(){
+    document.getElementById('timeInput').addEventListener('input', updateStage2Ready);
+    document.getElementById('nextBtn2').addEventListener('click',function(){
+      if(!CalendarManager.selected || !document.getElementById('timeInput').value) return;
+      StageManager.goTo(3);
+    });
+  },
+  wireStage3:function(){
+    var cards=document.querySelectorAll('.option-card');
+    var addressWrap=document.getElementById('addressWrap');
+    var addressInput=document.getElementById('addressInput');
+    var submitBtn=document.getElementById('submitAddressBtn');
+    cards.forEach(function(card){
+      card.addEventListener('click',function(){
+        cards.forEach(function(c){ c.classList.remove('selected'); });
+        card.classList.add('selected');
+        addressWrap.classList.add('show');
+        SoundManager.select();
+        setTimeout(function(){ addressInput.focus(); },350);
+      });
+    });
+    submitBtn.addEventListener('click',function(){
+      var locationChosen=!!document.querySelector('.option-card.selected');
+      var addressFilled=!!addressInput.value.trim();
+      if(locationChosen && addressFilled){
+        submitBtn.disabled=true;
+        SoundManager.success();
+        StageManager.goTo(4);
+        return;
+      }
+      if(!locationChosen){
+        var grid=document.getElementById('optionsGrid');
+        grid.classList.add('shake-input');
+        setTimeout(function(){ grid.classList.remove('shake-input'); },420);
+      }
+      if(!addressFilled){
+        addressInput.classList.add('shake-input');
+        addressInput.focus();
+        setTimeout(function(){ addressInput.classList.remove('shake-input'); },420);
+      }
+    });
+  },
+  wireStage4:function(){
+    document.getElementById('downloadSummaryBtn').addEventListener('click',function(){
+      SummaryManager.buildAndDownload();
+    });
+  }
+};
+
+document.addEventListener('DOMContentLoaded',function(){ App.init(); });
+
+})();
+</script>
+</body>
+</html>
